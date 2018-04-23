@@ -1,4 +1,5 @@
 import FluentSQLite
+import FluentMySQL
 import Vapor
 
 /// Called before your application initializes.
@@ -10,7 +11,7 @@ public func configure(
     _ services: inout Services
 ) throws {
     /// Register providers first
-    try services.register(FluentSQLiteProvider())
+    try services.register(FluentMySQLProvider())
 
     /// Register routes to the router
     let router = EngineRouter.default()
@@ -24,24 +25,25 @@ public func configure(
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
 
-    // Configure a SQLite database
-    let sqlite: SQLiteDatabase
+    
+    let mysql: MySQLDatabase
     if env.isRelease {
-        /// Create file-based SQLite db using $SQLITE_PATH from process env
-        sqlite = try SQLiteDatabase(storage: .file(path: Environment.get("SQLITE_PATH")!))
+        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "$DATABASE_HOSTNAME", username: "$DATABASE_USER", password: "$DATABASE_PASSWORD", database: "$DATABASE_DB"))
     } else {
-        /// Create an in-memory SQLite database
-        sqlite = try SQLiteDatabase(storage: .memory)
+        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "127.0.0.1", port: 3306, username: "root", password: "root", database: "languageService"));
+        
     }
-
-    /// Register the configured SQLite database to the database config.
+    
+    
     var databases = DatabaseConfig()
-    databases.add(database: sqlite, as: .sqlite)
+
+    databases.add(database: mysql, as: .mysql)
     services.register(databases)
 
     /// Configure migrations
     var migrations = MigrationConfig()
-    migrations.add(model: Todo.self, database: .sqlite)
+    migrations.add(model: Translation.self, database: .mysql)
+    migrations.add(model: Language.self, database: .mysql)
     services.register(migrations)
 
 }
