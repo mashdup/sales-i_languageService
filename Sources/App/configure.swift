@@ -46,4 +46,7 @@ public func configure(
     migrations.add(model: Language.self, database: .mysql)
     services.register(migrations)
 
+    let serverConfig = EngineServerConfig(hostname: "localhost", port: 8080, backlog: 256, workerCount: ProcessInfo.processInfo.activeProcessorCount, maxBodySize: 1_000_0000, reuseAddress: true, tcpNoDelay: true)
+    services.register(serverConfig)
+    
 }

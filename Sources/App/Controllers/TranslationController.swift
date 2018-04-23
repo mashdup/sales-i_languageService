@@ -9,7 +9,7 @@ import Vapor
 import FluentMySQL
 
 struct TranslationController: RouteCollection {
-    let authKey = "9832ryeifhjsdeiu238r0=^HJKIO789sdija*(^7doijsd_A*(1salpsijd"
+    let authKey = "9870uijlHGYkjsldkans90SIuj098sd908iJALK90sdlkls0"
     let routeBase = "translations";
     func boot(router: Router) throws {
         router.get("api",routeBase,String.parameter,String.parameter, use: getTranslations)
@@ -19,7 +19,9 @@ struct TranslationController: RouteCollection {
     }
     
     func createTranslation(_ req : Request) throws -> Future<Translation> {
-        let auth = req.http.headers["Authorization"][0]
+        let authHeader : Array? = req.http.headers["Authorization"]
+        if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
+        let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to add translation")}
         return try req.content.decode(Translation.self).flatMap(to: Translation.self) { translation in
             //delete any with same key
@@ -38,7 +40,9 @@ struct TranslationController: RouteCollection {
     }
     
     func deleteTransaltion(_ req : Request) throws -> Future<HTTPStatus> {
-        let auth = req.http.headers["Authorization"][0]
+        let authHeader : Array? = req.http.headers["Authorization"]
+        if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
+        let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to delete translation")}
         return try req.content.decode(Translation.self).flatMap(to: Translation.self) { translation in
             
@@ -63,7 +67,7 @@ struct TranslationController: RouteCollection {
         var translationDict = Dictionary<String, String> ()
 
         return req.withConnection(to: .mysql) { db -> Future<Dictionary<String, String>> in
-            return try db.query(Translation.self).filter(\.code == translationCode).run() { translation in
+            return try db.query(Translation.self).filter(\.code == translationCode).sort(QuerySort(field: QueryField(name: "identifier") , direction: .ascending)).run() { translation in
                     if translation.platform == platformName || translation.platform == "any" {
                         translationDict[translation.identifier] = translation.translation
                     }

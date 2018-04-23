@@ -10,7 +10,7 @@ import Vapor
 import FluentMySQL
 
 struct LanguageController : RouteCollection{
-    let authKey = "9832ryeifhjsdeiu238r0=^HJKIO789sdija*(^7doijsd_A*(1salpsijd"
+    let authKey = "9870uijlHGYkjsldkans90SIuj098sd908iJALK90sdlkls0"
     let routeBase = "languages";
     func boot(router: Router) throws {
         router.get("api",routeBase, use: getAvailableLanguages)
@@ -19,7 +19,9 @@ struct LanguageController : RouteCollection{
     }
     
     func createLanguage(_ req : Request) throws -> Future<Language> {
-        let auth = req.http.headers["Authorization"][0]
+        let authHeader : Array? = req.http.headers["Authorization"]
+        if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
+        let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to add language")}
         return try req.content.decode(Language.self).flatMap(to: Language.self) { language in
             //delete any with same key
@@ -36,7 +38,9 @@ struct LanguageController : RouteCollection{
     }
     
     func deleteLanguage(_ req : Request) throws -> Future<HTTPStatus> {
-        let auth = req.http.headers["Authorization"][0]
+        let authHeader : Array? = req.http.headers["Authorization"]
+        if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
+        let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to delete language")}
         return try req.content.decode(Language.self).flatMap(to: Language.self) { language in
             
