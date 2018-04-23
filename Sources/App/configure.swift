@@ -25,6 +25,7 @@ public func configure(
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
 
+    
     let mysql: MySQLDatabase
 //    if env.isRelease {
         mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "$DATABASE_HOSTNAME", username: "$DATABASE_USER", password: "$DATABASE_PASSWORD", database: "$DATABASE_DB"))
