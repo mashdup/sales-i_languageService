@@ -26,11 +26,17 @@ public func configure(
     services.register(middlewares)
 
     
-    let mysql: MySQLDatabase
+//    let mysql: MySQLDatabase
+    let db_hostname = Environment.get("DATABASE_HOSTNAME") ?? "127.0.0.1"
+    let db_user = Environment.get("DATABASE_USER") ?? "root"
+    let db_password = Environment.get("DATABASE_PASSWORD") ?? "root"
+    let db_database = Environment.get("DATABASE_DB") ?? "languageService"
+    
+    let mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: db_hostname,port :3306, username: db_user, password: db_password, database: db_database))
 //    if env.isRelease {
-        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "localhost", username: "vapor", password: "password", database: "vapor"))
+//        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "localhost", username: "vapor", password: "password", database: "vapor"))
 //    } else {
-//        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "127.0.0.1", port: 3306, username: "root", password: "root", database: "languageService"));
+//      let mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "127.0.0.1", port: 3306, username: "root", password: "root", database: "languageService"));
 //
 //    }
     
