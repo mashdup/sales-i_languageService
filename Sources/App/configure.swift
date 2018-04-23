@@ -28,7 +28,7 @@ public func configure(
     
     let mysql: MySQLDatabase
 //    if env.isRelease {
-        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "$DATABASE_HOSTNAME", username: "$DATABASE_USER", password: "$DATABASE_PASSWORD", database: "$DATABASE_DB"))
+        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "localhost", username: "vapor", password: "password", database: "vapor"))
 //    } else {
 //        mysql = MySQLDatabase(config: MySQLDatabaseConfig(hostname: "127.0.0.1", port: 3306, username: "root", password: "root", database: "languageService"));
 //
