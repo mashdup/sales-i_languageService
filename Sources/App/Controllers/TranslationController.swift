@@ -29,7 +29,9 @@ struct TranslationController: RouteCollection {
             _ = try Translation.query(on: req).filter(\.identifier == translation.identifier).all().map(to: [Translation].self) { translations in
                 for savedTranslation in translations {
                     if savedTranslation.platform == "any" || savedTranslation.platform == translation.platform {
-                        _ = savedTranslation.delete(on: req)
+                        if (savedTranslation.code == translation.code) {
+                            _ = savedTranslation.delete(on: req)
+                        }
                     }
                 }
                 return translations
@@ -51,7 +53,9 @@ struct TranslationController: RouteCollection {
                 
                 for savedTranslation in translations {
                     if savedTranslation.platform == "any" || savedTranslation.platform == translation.platform {
-                        _ = savedTranslation.delete(on: req)
+                        if (savedTranslation.code == translation.code) {
+                            _ = savedTranslation.delete(on: req)
+                        }
                     }
                 }
                 return translation
