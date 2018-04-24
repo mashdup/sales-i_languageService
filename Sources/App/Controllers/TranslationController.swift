@@ -82,9 +82,6 @@ struct TranslationController: RouteCollection {
     }
     
     func getAllTranslations(_ req : Request)throws  -> Future<[Translation]> {
-        
-        return req.withConnection(to: .mysql) { db -> Future<[Translation]> in
-            return db.query(Translation.self).all()
-        }
+        return Translation.query(on: req).all()
     }
 }
