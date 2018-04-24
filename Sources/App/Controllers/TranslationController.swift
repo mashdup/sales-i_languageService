@@ -18,26 +18,29 @@ struct TranslationController: RouteCollection {
         router.delete("api",routeBase, use: deleteTransaltion)
     }
     
-    func createTranslation(_ req : Request) throws -> Future<Translation> {
+    func createTranslation(_ req : Request) throws -> Future<[Translation]> {
         let authHeader : Array? = req.http.headers["Authorization"]
         if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
         let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to add translation")}
-        return try req.content.decode(Translation.self).flatMap(to: Translation.self) { translation in
+        return try req.content.decode([Translation].self).map(to: [Translation].self) { translations in
             //delete any with same key
-            
-            _ = try Translation.query(on: req).filter(\.identifier == translation.identifier).all().map(to: [Translation].self) { translations in
-                for savedTranslation in translations {
-                    if savedTranslation.platform == "any" || savedTranslation.platform == translation.platform {
-                        if (savedTranslation.code == translation.code) {
-                            _ = savedTranslation.delete(on: req)
+        
+            for translation in translations {
+                _ = try Translation.query(on: req).filter(\.identifier == translation.identifier).all().map(to: [Translation].self) { savedTranslations in
+                    for savedTranslation in savedTranslations {
+                        if savedTranslation.platform == "any" || savedTranslation.platform == translation.platform {
+                            if (savedTranslation.code == translation.code) {
+                                _ = savedTranslation.delete(on: req)
+                            }
                         }
                     }
+                    return savedTranslations
                 }
-                return translations
+                
+                _ = translation.save(on: req)
             }
-            
-            return translation.save(on: req)
+            return translations
         }
     }
     

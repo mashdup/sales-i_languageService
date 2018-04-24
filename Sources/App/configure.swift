@@ -1,4 +1,3 @@
-import FluentSQLite
 import FluentMySQL
 import Vapor
 
