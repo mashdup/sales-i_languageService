@@ -15,7 +15,7 @@ struct TranslationController: RouteCollection {
         router.get("api",routeBase,String.parameter,String.parameter, use: getTranslations)
         router.get("api",routeBase, use: getAllTranslations)
         router.post("api",routeBase, use: createTranslation)
-        router.delete("api",routeBase, use: deleteTransaltion)
+        router.delete("api",routeBase,String.parameter,String.parameter,String.parameter, use: deleteTransaltion)
     }
     
     func createTranslation(_ req : Request) throws -> Future<[Translation]> {
@@ -29,7 +29,7 @@ struct TranslationController: RouteCollection {
             for translation in translations {
                 _ = try Translation.query(on: req).filter(\.identifier == translation.identifier).all().map(to: [Translation].self) { savedTranslations in
                     for savedTranslation in savedTranslations {
-                        if savedTranslation.platform == "any" || savedTranslation.platform == translation.platform {
+                        if savedTranslation.platform == translation.platform {
                             if (savedTranslation.code == translation.code) {
                                 _ = savedTranslation.delete(on: req)
                             }
@@ -49,19 +49,19 @@ struct TranslationController: RouteCollection {
         if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
         let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to delete translation")}
-        return try req.content.decode(Translation.self).flatMap(to: Translation.self) { translation in
+        
+        let languageCode = try req.parameters.next(String.self)
+        let platform = try req.parameters.next(String.self)
+        let identifier = try req.parameters.next(String.self)
+        return try Translation.query(on: req).filter(\.identifier == identifier).all().map(to: Void.self) { translations in
+            if translations.count == 0 { throw Abort(.notFound, reason : "No existing Indentifier")}
             
-            return try Translation.query(on: req).filter(\.identifier == translation.identifier).all().map(to: Translation.self) { translations in
-                if translations.count == 0 { throw Abort(.notFound, reason : "No existing Indentifier")}
-                
-                for savedTranslation in translations {
-                    if savedTranslation.platform == "any" || savedTranslation.platform == translation.platform {
-                        if (savedTranslation.code == translation.code) {
-                            _ = savedTranslation.delete(on: req)
-                        }
+            for savedTranslation in translations {
+                if savedTranslation.platform == platform {
+                    if (savedTranslation.code == languageCode) {
+                        _ = savedTranslation.delete(on: req)
                     }
                 }
-                return translation
             }
         }.transform(to: .noContent)
     }
