@@ -15,7 +15,7 @@ struct LanguageController : RouteCollection{
     func boot(router: Router) throws {
         router.get("api",routeBase, use: getAvailableLanguages)
         router.post("api",routeBase, use: createLanguage)
-        router.delete("api",routeBase, use: deleteLanguage)
+        router.delete("api",routeBase,String.parameter, use: deleteLanguage)
     }
     
     func createLanguage(_ req : Request) throws -> Future<Language> {
@@ -42,18 +42,15 @@ struct LanguageController : RouteCollection{
         if authHeader?.count == 0 {throw Abort(.forbidden, reason: "Missing Authorization Header")}
         let auth: String? = req.http.headers["Authorization"][0]
         if auth != authKey { throw Abort(.forbidden, reason: "Not authorised to delete language")}
-        return try req.content.decode(Language.self).flatMap(to: Language.self) { language in
+        let languageCode = try req.parameters.next(String.self)
             
-            return try Language.query(on: req).filter(\.key == language.key).all().map(to: Language.self) { languages in
-                if languages.count == 0 { throw Abort(.notFound, reason : "No existing Indentifier")}
+        return try Language.query(on: req).filter(\.key == languageCode).all().map(to: Void.self) { languages in
+            if languages.count == 0 { throw Abort(.notFound, reason : "No existing Indentifier")}
+            for savedLanguage in languages {
+                    _ = savedLanguage.delete(on: req)
                 
-                for savedLanguage in languages {
-                        _ = savedLanguage.delete(on: req)
-                    
-                }
-                return language
             }
-            }.transform(to: .noContent)
+        }.transform(to: .noContent)
     }
     
     func getAvailableLanguages(_ req : Request) throws -> Future<[Language]> {
